@@ -93,7 +93,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
         );
       });
     } catch (err: any) {
-      console.log("handleCreateTeam error", err);
+      console.error("handleCreateTeam error", err);
       setError(err.message);
     }
 

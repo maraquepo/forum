@@ -39,7 +39,7 @@ const Posts: React.FC<PostsProps> = ({ teamData }) => {
         posts: posts as Post[],
       }));
     } catch (err: any) {
-      console.log("getPosts error", err.message);
+      console.error("getPosts error", err.message);
     }
     setLoading(false);
   };

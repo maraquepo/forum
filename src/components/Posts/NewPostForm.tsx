@@ -93,7 +93,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({ user }) => {
       // check for selectedFile
       if (selectedFile) {
         // store in storage => getDownloadURL ( return imageURL)
-        const imageRef = ref(storage, `post/${postDocRef.id}/image`);
+        const imageRef = ref(storage, `posts/${postDocRef.id}/image`);
         await uploadString(imageRef, selectedFile, "data_url");
         const downloadURL = await getDownloadURL(imageRef);
         // update post doc by adding imageURL
@@ -104,7 +104,7 @@ const NewPostForm: React.FC<NewPostFormProps> = ({ user }) => {
       // redirect the user back to the teamPage using the router
       router.back();
     } catch (err: any) {
-      console.log("handleCreatePost error", err.message);
+      console.error("handleCreatePost error", err.message);
       setError(true);
     }
     setLoading(false);

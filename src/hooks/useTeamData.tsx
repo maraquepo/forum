@@ -48,10 +48,8 @@ const useTeamData = () => {
         ...prev,
         mySnippets: snippets as TeamSnippet[],
       }));
-
-      console.log("snip", snippets);
     } catch (err: any) {
-      console.log("getMySnippets error", err);
+      console.error("getMySnippets error", err);
     }
     setLoading(false);
   };
@@ -85,7 +83,7 @@ const useTeamData = () => {
         mySnippets: [...prev.mySnippets, newSnippet],
       }));
     } catch (err: any) {
-      console.log("joinTeam error", err.message);
+      console.error("joinTeam error", err.message);
       setError(err.message);
     }
     setLoading(false);
@@ -113,7 +111,7 @@ const useTeamData = () => {
         mySnippets: prev.mySnippets.filter((item) => item.teamId !== teamId),
       }));
     } catch (err: any) {
-      console.log("leaveTeam error", err.message);
+      console.error("leaveTeam error", err.message);
       setError(err.message);
     }
 

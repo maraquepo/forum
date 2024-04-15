@@ -48,7 +48,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   } catch (err) {
-    console.log("getServerSideProps error", err);
+    console.error("getServerSideProps error", err);
   }
 }
 
