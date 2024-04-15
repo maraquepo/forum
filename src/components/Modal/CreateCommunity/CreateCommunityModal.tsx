@@ -1,3 +1,4 @@
+import { auth, firestore } from "@/firebase/clientApp";
 import {
   Box,
   Button,
@@ -16,33 +17,87 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+import {
+  doc,
+  getDoc,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
 import React, { useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 import { BsFillEyeFill, BsFillPersonFill } from "react-icons/bs";
 import { HiLockClosed } from "react-icons/hi";
 
-type CreateCommunityModalProps = {
+type CreateTeamModalProps = {
   open: boolean;
   handleClose: () => void;
 };
 
-const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
+const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
   open,
   handleClose,
 }) => {
-  const [communityName, setCommunityName] = useState("");
+  const [user] = useAuthState(auth);
+  const [teamName, setTeamName] = useState("");
   const [charsRemaining, setCharsRemaining] = useState(21);
-  const [communityType, setCommunityType] = useState("public");
+  const [teamType, setTeamType] = useState("public");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value.length > 21) return;
-
-    setCommunityName(e.target.value);
-    // recalculate chars remaining
+    setTeamName(e.target.value);
     setCharsRemaining(21 - e.target.value.length);
   };
 
-  const onCommunityTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCommunityType(e.target.name);
+  const onTeamTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTeamType(e.target.name);
+  };
+
+  const handleCreateTeam = async () => {
+    // validate the team
+    const format = /[ `!@#$%^&*()+\-=\[\]{};':"\\|,.<>\/?~]/;
+    if (format.test(teamName) || teamName.length < 3) {
+      setError(
+        "Team names must be between 3-21 characters, and can only contain letters, numbers, or underscores"
+      );
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const teamDocRef = doc(firestore, "teams", teamName);
+
+      await runTransaction(firestore, async (transaction) => {
+        // Check if team exists in db
+        const teamDoc = await transaction.get(teamDocRef);
+
+        if (teamDoc.exists()) {
+          throw new Error(`Sorry, ${teamName} is taken. Try another. `);
+        }
+        transaction.set(teamDocRef, {
+          creatorId: user?.uid,
+          createdAt: serverTimestamp(),
+          numberOfMembers: 1,
+          privacyType: teamType,
+        });
+
+        transaction.set(
+          doc(firestore, `users/${user?.uid}/teamSnippets`, teamName),
+          {
+            teamId: teamName,
+            isManager: true,
+          }
+        );
+      });
+    } catch (err: any) {
+      console.log("handleCreateTeam error", err);
+      setError(err.message);
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -79,13 +134,16 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
               </Text>
               <Input
                 position="relative"
-                value={communityName}
+                value={teamName}
                 size="sm"
                 pl="22px"
                 onChange={handleChange}
               />
               <Text color={charsRemaining === 0 ? "red" : "gray.500"}>
                 {charsRemaining} Characters Remaining
+              </Text>
+              <Text fontSize="9pt" color="red" pt={1}>
+                {error}
               </Text>
               <Box mt={4} mb={4}>
                 <Text fontWeight={600} fontSize={15}>
@@ -94,8 +152,8 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
                 <Stack spacing={2}>
                   <Checkbox
                     name="public"
-                    isChecked={communityType === "public"}
-                    onChange={onCommunityTypeChange}
+                    isChecked={teamType === "public"}
+                    onChange={onTeamTypeChange}
                   >
                     <Flex align="center">
                       <Icon as={BsFillPersonFill} color="gray.500" mr={2} />
@@ -110,8 +168,8 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
                   </Checkbox>
                   <Checkbox
                     name="restricted"
-                    isChecked={communityType === "restricted"}
-                    onChange={onCommunityTypeChange}
+                    isChecked={teamType === "restricted"}
+                    onChange={onTeamTypeChange}
                   >
                     <Flex align="center">
                       <Icon as={BsFillEyeFill} color="gray.500" mr={2} />
@@ -121,15 +179,15 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
                       </Text>
                       {/* TODO */}
                       <Text fontSize="8pt" color="gray.500" pt={1}>
-                        Anyone can view this community, but only approved users
-                        can post
+                        Anyone can view this team, but only approved users can
+                        post
                       </Text>
                     </Flex>
                   </Checkbox>
                   <Checkbox
                     name="private"
-                    isChecked={communityType === "private"}
-                    onChange={onCommunityTypeChange}
+                    isChecked={teamType === "private"}
+                    onChange={onTeamTypeChange}
                   >
                     <Flex align="center">
                       <Icon as={HiLockClosed} color="gray.500" mr={2} />
@@ -156,7 +214,11 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
             >
               Cancel
             </Button>
-            <Button height="30px" onClick={() => {}}>
+            <Button
+              height="30px"
+              onClick={handleCreateTeam}
+              isLoading={loading}
+            >
               Create Team
             </Button>
           </ModalFooter>
@@ -165,4 +227,4 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({
     </>
   );
 };
-export default CreateCommunityModal;
+export default CreateTeamModal;
