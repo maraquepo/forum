@@ -7,5 +7,24 @@ export interface Team {
   numberOfMembers: number;
   privacyType: "public" | "restricted" | "private";
   createdAt?: Timestamp;
-  imageUrl?: string;
+  imageURL?: string;
 }
+
+export interface TeamSnippet {
+  teamId: string;
+  isManager?: boolean;
+  imageURL?: string;
+}
+
+interface TeamState {
+  mySnippets: TeamSnippet[];
+}
+
+const defaultTeamState: TeamState = {
+  mySnippets: [],
+};
+
+export const teamState = atom<TeamState>({
+  key: "teamsState",
+  default: defaultTeamState,
+});

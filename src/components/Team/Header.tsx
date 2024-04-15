@@ -1,4 +1,5 @@
 import { Team } from "@/atoms/teamsAtom";
+import useTeamData from "@/hooks/useTeamData";
 import { Box, Button, Flex, Icon, Image, Text } from "@chakra-ui/react";
 import React from "react";
 import { FaReddit } from "react-icons/fa";
@@ -8,14 +9,18 @@ type HeaderProps = {
 };
 
 const Header: React.FC<HeaderProps> = ({ teamData }) => {
-  const isJoined = false;
+  const { teamStateValue, onJoinOrLeaveTeam, loading } = useTeamData();
+
+  const isJoined = !!teamStateValue.mySnippets.find(
+    (item) => item.teamId === teamData.id
+  );
 
   return (
     <Flex direction="column" width="100%" height="146px">
       <Box height="50%" bg="blue.400" />
       <Flex justify="center" bg="white" flexGrow={1}>
         <Flex width="95%" maxWidth="860px">
-          {teamData.imageUrl ? (
+          {teamData.imageURL ? (
             <Image />
           ) : (
             <Icon
@@ -42,7 +47,8 @@ const Header: React.FC<HeaderProps> = ({ teamData }) => {
               height="30px"
               pr={6}
               pl={6}
-              onClick={() => {}}
+              isLoading={loading}
+              onClick={() => onJoinOrLeaveTeam(teamData, isJoined)}
             >
               {isJoined ? "Joined" : "Join"}
             </Button>
