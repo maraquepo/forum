@@ -1,5 +1,7 @@
 import { Team } from "@/atoms/teamsAtom";
 import PageContent from "@/components/Layout/PageContent";
+import Posts from "@/components/Posts/Posts";
+import CreatePostLink from "@/components/Team/CreatePostLink";
 import Header from "@/components/Team/Header";
 import TeamNotFound from "@/components/Team/TeamNotFound";
 import { firestore } from "@/firebase/clientApp";
@@ -22,11 +24,8 @@ const TeamPage: React.FC<TeamPageProps> = ({ teamData }) => {
       <Header teamData={teamData} />
       <PageContent>
         <>
-          <div>LHS</div>
-          <div>LHS</div>
-          <div>LHS</div>
-          <div>LHS</div>
-          <div>LHS</div>
+          <CreatePostLink />
+          <Posts teamData={teamData} />
         </>
         <>
           <div>RHS</div>
